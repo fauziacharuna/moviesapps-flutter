@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:movies_apps/src/blocs/movie_detail_bloc_provider.dart';
+import 'package:movies_apps/src/ui/movie_detail.dart';
 import '../models/item_model.dart';
 import '../blocs/movies_bloc.dart';
+import '../blocs/movie_detail_bloc.dart';
+import '../models/trailer_model.dart';
+import 'movie_detail.dart';
 
 class MovieList extends StatefulWidget {
   @override
@@ -52,11 +57,33 @@ class MovieListState extends State<MovieList> {
             new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
         itemBuilder: (BuildContext context, int index) {
           return GridTile(
-            child: Image.network(
-              'https://image.tmdb.org/t/p/w185${snapshot.data?.results[index].poster_path}',
-              fit: BoxFit.cover,
+            child: InkResponse(
+              enableFeedback: true,
+              child: Image.network(
+                'https://image.tmdb.org/t/p/w185${snapshot.data?.results[index].poster_path}',
+                fit: BoxFit.cover,
+              ),
+              onTap: () => openDetailPage(snapshot.data!, index),
             ),
           );
         });
+  }
+
+  openDetailPage(ItemModel data, int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) {
+        return MovieDetailBlocProvider(
+          child: MovieDetail(
+            title: data.results[index].title,
+            posterUrl: data.results[index].backdrop_path,
+            description: data.results[index].overview,
+            releaseDate: data.results[index].release_date,
+            voteAverage: data.results[index].vote_average.toString(),
+            movieId: data.results[index].id,
+          ),
+        );
+      }),
+    );
   }
 }
