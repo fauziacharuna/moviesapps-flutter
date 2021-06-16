@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:movies_apps/src/blocs/movie_detail_bloc.dart';
 import '../blocs/movie_detail_bloc_provider.dart';
+import '../models/trailer_model.dart';
 
 class MovieDetail extends StatefulWidget {
   final posterUrl;
@@ -11,12 +13,12 @@ class MovieDetail extends StatefulWidget {
   final int movieId;
 
   MovieDetail({
-    required this.title,
+    this.title,
     this.posterUrl,
     this.description,
     this.releaseDate,
-    required this.voteAverage,
-    required this.movieId,
+    this.voteAverage,
+    this.movieId,
   });
 
   @override
@@ -33,22 +35,22 @@ class MovieDetail extends StatefulWidget {
 }
 
 class MovieDetailState extends State<MovieDetail> {
-  late final posterUrl;
-  late final description;
-  late final releaseDate;
-  late final String title;
-  late final String voteAverage;
-  late final int movieId;
+  final posterUrl;
+  final description;
+  final releaseDate;
+  final String title;
+  final String voteAverage;
+  final int movieId;
 
-  late  MovieDetailBloc bloc;
+  MovieDetailBloc bloc;
 
   MovieDetailState(
-      {required this.title,
+      {this.title,
       this.posterUrl,
       this.description,
       this.releaseDate,
-      required this.voteAverage,
-      required this.movieId});
+      this.voteAverage,
+      this.movieId});
 
   @override
   void didChangeDependencies() {
@@ -68,13 +70,13 @@ class MovieDetailState extends State<MovieDetail> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Scaffold(
       body: SafeArea(
         top: false,
         bottom: false,
         child: NestedScrollView(
-          headerSliverBuilder: (BuildContext context, bool InnerBoxIsScrolled) {
+          headerSliverBuilder: (BuildContext context,
+              bool innerBoxIsScrolled) {
             return <Widget>[
               SliverAppBar(
                 expandedHeight: 200.0,
@@ -83,8 +85,9 @@ class MovieDetailState extends State<MovieDetail> {
                 elevation: 0.0,
                 flexibleSpace: FlexibleSpaceBar(
                     background: Image.network(
-                        ("https://image.tmdb.org/t/p/w500$posterUrl"),
-                        fit: BoxFit.cover)),
+                      "https://image.tmdb.org/t/p/w500$posterUrl",
+                      fit: BoxFit.cover,
+                    )),
               ),
             ];
           },
@@ -101,7 +104,8 @@ class MovieDetailState extends State<MovieDetail> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Container(margin: EdgeInsets.only(top: 8.0, bottom: 8.0)),
+                Container(margin: EdgeInsets.only(top: 8.0,
+                    bottom: 8.0)),
                 Row(
                   children: <Widget>[
                     Icon(
@@ -109,7 +113,8 @@ class MovieDetailState extends State<MovieDetail> {
                       color: Colors.red,
                     ),
                     Container(
-                      margin: EdgeInsets.only(left: 1.0, right: 1.0),
+                      margin: EdgeInsets.only(left: 1.0,
+                          right: 1.0),
                     ),
                     Text(
                       voteAverage,
@@ -118,7 +123,8 @@ class MovieDetailState extends State<MovieDetail> {
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(left: 10.0, right: 10.0),
+                      margin: EdgeInsets.only(left: 10.0,
+                          right: 10.0),
                     ),
                     Text(
                       releaseDate,
@@ -128,11 +134,11 @@ class MovieDetailState extends State<MovieDetail> {
                     ),
                   ],
                 ),
-                Container(margin: EdgeInsets.only(top: 8.0, bottom: 8.0)),
+                Container(margin: EdgeInsets.only(top: 8.0,
+                    bottom: 8.0)),
                 Text(description),
-                Container(margin: EdgeInsets.only(top: 8.0, bottom: 8.0)),
-                Text(description),
-                Container(margin: EdgeInsets.only(top: 8.0, bottom: 8.0)),
+                Container(margin: EdgeInsets.only(top: 8.0,
+                    bottom: 8.0)),
                 Text(
                   "Trailer",
                   style: TextStyle(
@@ -140,17 +146,82 @@ class MovieDetailState extends State<MovieDetail> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Container(margin: EdgeInsets.only(
-                    top: 8.0,
-                    bottom: 8.0),
-                )
-
+                Container(margin: EdgeInsets.only(top: 8.0,
+                    bottom: 8.0)),
+                StreamBuilder(
+                  stream: bloc.movieTrailers,
+                  builder:
+                      (context, AsyncSnapshot<Future<TrailerModel>> snapshot) {
+                    if (snapshot.hasData) {
+                      return FutureBuilder(
+                        future: snapshot.data,
+                        builder: (context,
+                            AsyncSnapshot<TrailerModel> itemSnapShot) {
+                          if (itemSnapShot.hasData) {
+                            if (itemSnapShot.data.results.length > 0)
+                              return trailerLayout(itemSnapShot.data);
+                            else
+                              return noTrailer(itemSnapShot.data);
+                          } else {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                        },
+                      );
+                    } else {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                  },
+                ),
               ],
             ),
           ),
         ),
       ),
     );
-    throw UnimplementedError();
+  }
+
+  Widget noTrailer(TrailerModel data) {
+    return Center(
+      child: Container(
+        child: Text("No trailer available"),
+      ),
+    );
+  }
+
+  Widget trailerLayout(TrailerModel data) {
+    if (data.results.length > 1) {
+      return Row(
+        children: <Widget>[
+          trailerItem(data, 0),
+          trailerItem(data, 1),
+        ],
+      );
+    } else {
+      return Row(
+        children: <Widget>[
+          trailerItem(data, 0),
+        ],
+      );
+    }
+  }
+
+  trailerItem(TrailerModel data, int index) {
+    return Expanded(
+      child: Column(
+        children: <Widget>[
+          Container(
+            margin: EdgeInsets.all(5.0),
+            height: 100.0,
+            color: Colors.grey,
+            child: Center(child: Icon(Icons.play_circle_filled)),
+          ),
+          Text(
+            data.results[index].name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
   }
 }

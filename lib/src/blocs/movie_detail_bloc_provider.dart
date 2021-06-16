@@ -5,20 +5,18 @@ export 'movie_detail_bloc.dart';
 class MovieDetailBlocProvider extends InheritedWidget {
   final MovieDetailBloc bloc;
 
-  MovieDetailBlocProvider({Key? key, required Widget child})
-  : bloc = MovieDetailBloc(),
-  super(key: key, child: child);
+  MovieDetailBlocProvider({Key key, Widget child})
+      : bloc = MovieDetailBloc(),
+        super(key: key, child: child);
 
   @override
-  bool updateShouldNotify(covariant InheritedWidget oldWidget) {
-    // TODO: implement updateShouldNotify
+  bool updateShouldNotify(_) {
     return true;
   }
 
-  static MovieDetailBloc of(BuildContext context){
-    return (context.dependOnInheritedWidgetOfExactType(aspect: MovieDetailBlocProvider)
-    as MovieDetailBlocProvider).bloc;
-
+  static MovieDetailBloc of(BuildContext context) {
+    return (context.dependOnInheritedWidgetOfExactType<MovieDetailBlocProvider>()
+    as MovieDetailBlocProvider)
+        .bloc;
   }
-
 }
